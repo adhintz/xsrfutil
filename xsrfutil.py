@@ -31,7 +31,7 @@ import time
 
 from google.appengine.api import memcache
 from google.appengine.api import users
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 # String used instead of user id when there is no user. Not that it makes sense
 # to protect unauthenticated functionality from XSRF.
@@ -169,9 +169,9 @@ def xsrf_token(path=None):
   return generate_token(XsrfSecret.get(), user, path)
 
 
-class XsrfSecret(db.Model):
+class XsrfSecret(ndb.Model):
   """Model for datastore to store the XSRF secret."""
-  secret = db.StringProperty(required=True)
+  secret = ndb.StringProperty(required=True)
 
   @staticmethod
   def get():
@@ -183,7 +183,7 @@ class XsrfSecret(db.Model):
     """
     secret = memcache.get('xsrf_secret')
     if not secret:
-      xsrf_secret = XsrfSecret.all().get()
+      xsrf_secret = XsrfSecret.query().get()
       if not xsrf_secret:
         # hmm, nothing found? We need to generate a secret for xsrf protection.
         secret = binascii.b2a_hex(os.urandom(16))
